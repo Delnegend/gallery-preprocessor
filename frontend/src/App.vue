@@ -19,9 +19,9 @@ const tasks = ([
 		"Remove JPEG artifacts and output PNG.<br /><br />Accepts: JPG",
 	],
 	[
-		backend.TaskID.ArtefactJxl,
-		"Artefact + CJXL (Lossy)",
-		"Remove JPEG artifacts and output PNG, then compress to JXL (lossy).<br /><br />Accepts: <code>.jpg</code>",
+		backend.TaskID.ArtefactAvif,
+		"Artefact + AVIF (Lossy)",
+		"Remove JPEG artifacts and output PNG, then compress to AVIF (lossy).<br /><br />Accepts: <code>.jpg</code>",
 	],
 	[
 		backend.TaskID.CjxlLossless,
@@ -29,8 +29,8 @@ const tasks = ([
 		"Compress JPG/PNG to JXL (lossless).<br /><br />Accepts: <code>.jpg</code>, <code>.png</code>",
 	],
 	[
-		backend.TaskID.CjxlLossy,
-		"CJXL (Lossy)",
+		backend.TaskID.AvifLossy,
+		"AVIF (Lossy)",
 		"Compress JPG/PNG to JXL (lossy).<br /><br />Accepts: <code>.jpg</code>, <code>.png</code>",
 
 	],
