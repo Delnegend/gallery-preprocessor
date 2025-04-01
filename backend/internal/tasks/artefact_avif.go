@@ -13,7 +13,7 @@ import (
 	"syscall"
 )
 
-func ArtefactJxl(
+func ArtefactAvif(
 	ctx context.Context,
 	files []string,
 	poolSize int,
@@ -38,9 +38,9 @@ func ArtefactJxl(
 
 	// output file already exists
 	for _, inputJpgFile := range jpgFiles {
-		outputJxlFile := utils.ReplaceExt(inputJpgFile, ".jxl")
-		if _, err := os.Stat(outputJxlFile); err == nil {
-			sendWarning(fmt.Errorf("possible output file '%s' already exists", outputJxlFile))
+		outputAvifFile := utils.ReplaceExt(inputJpgFile, ".avif")
+		if _, err := os.Stat(outputAvifFile); err == nil {
+			sendWarning(fmt.Errorf("possible output file '%s' already exists", outputAvifFile))
 			return
 		}
 	}
@@ -67,7 +67,7 @@ func ArtefactJxl(
 			defer updateProgress()
 
 			outputPngFile := filepath.Join(tmpDir, fmt.Sprintf("%d.png", i))
-			outputJxlFile := utils.ReplaceExt(inputJpgFile, ".jxl")
+			outputAvifFile := utils.ReplaceExt(inputJpgFile, ".avif")
 
 			// jpg --artefact--> png
 			cmd := exec.CommandContext(ctx, "artefact-cli", inputJpgFile, "-o", outputPngFile, "-i", "50")
@@ -83,29 +83,27 @@ func ArtefactJxl(
 				return
 			}
 
-			// png -> jxl
-			cmd = exec.CommandContext(ctx, "cjxl", outputPngFile, outputJxlFile, "-d", "1", "-e", "9")
+			// png -> avif
+			cmd = exec.CommandContext(ctx, "ffmpeg", "-i", outputPngFile, "-c:v", "libsvtav1", "-crf", "22", "-preset", "2", "-pix_fmt", "yuv420p10le", "-vf", "scale=ceil(iw/2)*2:ceil(ih/2)*2", "-svtav1-params", "avif=1", outputAvifFile)
 			cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 			outputMsgBytes, err = cmd.CombinedOutput()
 			outputMsgString = string(outputMsgBytes)
 			switch {
 			case err != nil && outputMsgString != "":
-				sendWarning(fmt.Errorf("cjxl error: %s", outputMsgString))
+				sendWarning(fmt.Errorf("ffmpeg error: %s", outputMsgString))
 				return
 			case err != nil && outputMsgString == "":
-				sendWarning(fmt.Errorf("cjxl error: %w", err))
+				sendWarning(fmt.Errorf("ffmpeg error: %w", err))
 				return
 			}
 
 			// check if output exists
-			if _, err := os.Stat(outputJxlFile); err != nil {
-				// sendWarning(fmt.Errorf("output file '%s' does not exist", outputJxlFile))
-				// return
+			if _, err := os.Stat(outputAvifFile); err != nil {
 				if errors.Is(err, os.ErrNotExist) {
-					sendWarning(fmt.Errorf("output file '%s' does not exist", outputJxlFile))
+					sendWarning(fmt.Errorf("output file '%s' does not exist", outputAvifFile))
 					return
 				}
-				sendWarning(fmt.Errorf("can't check output file '%s': %w", outputJxlFile, err))
+				sendWarning(fmt.Errorf("can't check output file '%s': %w", outputAvifFile, err))
 			}
 		})
 	}

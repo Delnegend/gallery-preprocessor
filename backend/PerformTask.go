@@ -13,9 +13,9 @@ type TaskID string
 
 var (
 	TaskArtefact     TaskID = "Artefact"
-	TaskArtefactJxl  TaskID = "ArtefactJxl"
+	TaskArtefactAvif TaskID = "ArtefactAvif"
 	TaskCjxlLossLess TaskID = "CjxlLossless"
-	TaskCjxlLossy    TaskID = "CjxlLossy"
+	TaskAvifLossy    TaskID = "AvifLossy"
 	TaskDjxl         TaskID = "Djxl"
 	TaskPar2         TaskID = "Par2"
 
@@ -24,9 +24,9 @@ var (
 		TSName string
 	}{
 		{TaskArtefact, string(TaskArtefact)},
-		{TaskArtefactJxl, string(TaskArtefactJxl)},
+		{TaskArtefactAvif, string(TaskArtefactAvif)},
 		{TaskCjxlLossLess, string(TaskCjxlLossLess)},
-		{TaskCjxlLossy, string(TaskCjxlLossy)},
+		{TaskAvifLossy, string(TaskAvifLossy)},
 		{TaskDjxl, string(TaskDjxl)},
 		{TaskPar2, string(TaskPar2)},
 	}
@@ -73,12 +73,12 @@ func PerformTask(taskCtx context.Context, taskInput TaskInput, progressChan chan
 	switch taskInput.TaskID {
 	case TaskArtefact:
 		tasks.Artefact(taskCtx, files, 2, updateProgressBase, sendWarning)
-	case TaskArtefactJxl:
-		tasks.ArtefactJxl(taskCtx, files, 2, updateProgressBase, sendWarning)
+	case TaskArtefactAvif:
+		tasks.ArtefactAvif(taskCtx, files, 2, updateProgressBase, sendWarning)
 	case TaskCjxlLossLess:
 		tasks.Cjxl(taskCtx, files, 2, false, updateProgressBase, sendWarning)
-	case TaskCjxlLossy:
-		tasks.Cjxl(taskCtx, files, 2, true, updateProgressBase, sendWarning)
+	case TaskAvifLossy:
+		tasks.AvifLossy(taskCtx, files, 2, updateProgressBase, sendWarning)
 	case TaskDjxl:
 		tasks.Djxl(taskCtx, files, 2, updateProgressBase, sendWarning)
 	case TaskPar2:

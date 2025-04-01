@@ -2,9 +2,9 @@ export namespace backend {
 	
 	export enum TaskID {
 	    Artefact = "Artefact",
-	    ArtefactJxl = "ArtefactJxl",
+	    ArtefactAvif = "ArtefactAvif",
 	    CjxlLossless = "CjxlLossless",
-	    CjxlLossy = "CjxlLossy",
+	    AvifLossy = "AvifLossy",
 	    Djxl = "Djxl",
 	    Par2 = "Par2",
 	}
