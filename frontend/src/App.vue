@@ -130,7 +130,7 @@ onUnmounted(() => {
 					runningTask !== null && runningTask !== task.ID && 'text-secondary-foreground/50 font-extralight'
 				)">
 				<HoverCard :openDelay="500" :closeDelay="100">
-					<HoverCardTrigger class="select-none underline-offset-4 hover:font-bold">
+					<HoverCardTrigger class="select-none underline-offset-4">
 						{{ task.Label }}
 					</HoverCardTrigger>
 					<HoverCardContent class="text-balance px-3 py-2 text-sm text-primary/80">
