@@ -51,6 +51,7 @@ func Artefact(
 	})
 
 	pool := utils.NewWorkerPool(ctx, poolSize)
+	defer pool.WaitAndClose()
 
 	for _, inputJpgFile := range jpgFiles {
 		pool.Run(func() {
@@ -80,6 +81,4 @@ func Artefact(
 			}
 		})
 	}
-
-	pool.WaitAndClose()
 }
