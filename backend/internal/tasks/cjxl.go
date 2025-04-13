@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"syscall"
@@ -46,7 +47,7 @@ func Cjxl(
 		}
 
 		withoutExt := utils.ReplaceExt(inputFile, "")
-		if utils.Contains(fileNamesWithoutExt, withoutExt) {
+		if slices.Contains(fileNamesWithoutExt, withoutExt) {
 			sendWarning(fmt.Errorf("duplicate possible output file for '%s'", inputFile))
 			return
 		}
