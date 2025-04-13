@@ -16,7 +16,7 @@ const tasks = ([
 	[
 		backend.TaskID.Artefact,
 		"Artefact",
-		"Remove JPEG artifacts and output PNG.<br /><br />Accepts: JPG",
+		"Remove JPEG artifacts and output PNG.<br /><br />Accepts: <code>.jpg</code>",
 	],
 	[
 		backend.TaskID.ArtefactAvif,
