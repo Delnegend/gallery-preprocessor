@@ -47,8 +47,8 @@ func main() {
 		OnStartup: func(ctx context.Context) {
 			app.ctx = ctx
 		},
-		Bind: []interface{}{&app},
-		EnumBind: []interface{}{
+		Bind: []any{&app},
+		EnumBind: []any{
 			backend.AllTasks,
 			[]struct {
 				Value  OtherEmitID
@@ -65,7 +65,6 @@ func main() {
 		OnDomReady: func(ctx context.Context) {
 			progressChan := make(chan float64)
 			warnChan := make(chan error)
-			var taskMutex sync.Mutex
 
 			go func() {
 				for progress := range progressChan {
@@ -79,37 +78,69 @@ func main() {
 			}()
 
 			var taskCancel context.CancelFunc
-			for _, taskType := range backend.AllTasks {
-				taskID := taskType.TSName
-				runtime.EventsOn(ctx, taskID, func(data ...interface{}) {
-					if len(data) != 1 {
-						warnChan <- fmt.Errorf("expect 1 argument from frontend, got %v", data)
+
+			isProcessing := false
+			var isProcessingMu sync.Mutex
+			runtime.EventsOn(ctx, "process", func(data ...any) {
+				if isProcessing {
+					warnChan <- fmt.Errorf("cannot process while another task is running")
+					return
+				}
+
+				isProcessingMu.Lock()
+				defer isProcessingMu.Unlock()
+				isProcessing = true
+				defer func() { isProcessing = false }()
+
+				var taskId backend.TaskID
+				if parsed, ok := data[0].(string); ok {
+					switch parsed {
+					case string(backend.TaskArtefact):
+						taskId = backend.TaskArtefact
+					case string(backend.TaskArtefactAvif):
+						taskId = backend.TaskArtefactAvif
+					case string(backend.TaskCjxlLossLess):
+						taskId = backend.TaskCjxlLossLess
+					case string(backend.TaskAvifLossy):
+						taskId = backend.TaskAvifLossy
+					case string(backend.TaskDjxl):
+						taskId = backend.TaskDjxl
+					case string(backend.TaskPar2):
+						taskId = backend.TaskPar2
+					default:
+						warnChan <- fmt.Errorf("unknown task %s", parsed)
 						return
 					}
+				} else {
+					warnChan <- fmt.Errorf("expect first argument of \"process\" event to be string, got %v", data[0])
+					return
+				}
 
-					taskMutex.Lock()
-					defer taskMutex.Unlock()
-
-					var taskCtx context.Context
-					taskCtx, taskCancel = context.WithCancel(ctx)
-					defer func() { taskCancel = nil }()
-
-					taskInput := backend.TaskInput{Inputs: []string{}, TaskID: taskType.Value}
-					for _, input := range data[0].([]interface{}) {
-						inputString, ok := input.(string)
-						if !ok {
-							warnChan <- fmt.Errorf("expect string from frontend, got %v", input)
-							return
-						}
-						taskInput.Inputs = append(taskInput.Inputs, inputString)
+				inputsAny, ok := data[1].([]any)
+				if !ok {
+					warnChan <- fmt.Errorf("expect second argument of \"process\" event to be []string, got %v", data[1])
+					return
+				}
+				inputStrings := make([]string, len(inputsAny))
+				for i, inputAny := range inputsAny {
+					inputString, ok := inputAny.(string)
+					if !ok {
+						warnChan <- fmt.Errorf("expect string from frontend, got %v", inputAny)
+						return
 					}
+					inputStrings[i] = inputString
+				}
 
-					runtime.EventsEmit(ctx, string(TaskStartEmitID), taskID)
-					defer runtime.EventsEmit(ctx, string(TaskDoneEmitID), taskID)
-					backend.PerformTask(taskCtx, taskInput, progressChan, warnChan)
-				})
-			}
-			runtime.EventsOn(ctx, string(CancelTaskEmitID), func(data ...interface{}) {
+				runtime.EventsEmit(ctx, string(TaskStartEmitID), taskId)
+				backend.PerformTask(
+					ctx,
+					backend.TaskInput{Inputs: inputStrings, TaskID: taskId}, progressChan,
+					warnChan,
+				)
+				runtime.EventsEmit(ctx, string(TaskDoneEmitID), taskId)
+			})
+
+			runtime.EventsOn(ctx, string(CancelTaskEmitID), func(data ...any) {
 				if taskCancel != nil {
 					taskCancel()
 				}
