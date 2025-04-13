@@ -42,8 +42,6 @@ func Djxl(
 		return float64(processedFiles) / float64(len(jxlFiles))
 	})
 
-	pool := utils.NewWorkerPool(ctx, poolSize)
-
 	canContinue := true
 	for _, inputJxlFile := range jxlFiles {
 		outputPngFile := utils.ReplaceExt(inputJxlFile, ".png")
@@ -63,6 +61,9 @@ func Djxl(
 	if !canContinue {
 		return
 	}
+
+	pool := utils.NewWorkerPool(ctx, poolSize)
+	defer pool.WaitAndClose()
 
 	for _, inputJxlFile := range jxlFiles {
 		pool.Run(func() {
@@ -130,6 +131,4 @@ func Djxl(
 			}
 		})
 	}
-
-	pool.WaitAndClose()
 }

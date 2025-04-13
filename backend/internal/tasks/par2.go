@@ -45,6 +45,7 @@ func Par2(
 	})
 
 	pool := utils.NewWorkerPool(ctx, poolSize)
+	defer pool.WaitAndClose()
 
 	for _, input7zFile := range _7zFiles {
 		pool.Run(func() {
@@ -62,6 +63,4 @@ func Par2(
 			}
 		})
 	}
-
-	pool.WaitAndClose()
 }

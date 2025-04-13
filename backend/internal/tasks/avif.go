@@ -51,6 +51,7 @@ func AvifLossy(
 	})
 
 	pool := utils.NewWorkerPool(ctx, poolSize)
+	defer pool.WaitAndClose()
 
 	for _, inputFile := range pngFiles {
 		pool.Run(func() {

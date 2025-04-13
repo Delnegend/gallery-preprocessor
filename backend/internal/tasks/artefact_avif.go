@@ -61,6 +61,7 @@ func ArtefactAvif(
 	}
 
 	pool := utils.NewWorkerPool(ctx, poolSize)
+	defer pool.WaitAndClose()
 
 	for i, inputJpgFile := range jpgFiles {
 		pool.Run(func() {
@@ -108,7 +109,6 @@ func ArtefactAvif(
 		})
 	}
 
-	pool.WaitAndClose()
 	if err := os.RemoveAll(tmpDir); err != nil {
 		sendWarning(fmt.Errorf("can't remove temp dir: %w", err))
 	}

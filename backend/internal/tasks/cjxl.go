@@ -63,6 +63,7 @@ func Cjxl(
 	})
 
 	pool := utils.NewWorkerPool(ctx, poolSize)
+	defer pool.WaitAndClose()
 
 	distance := "0"
 	if outputLossy {
@@ -97,6 +98,4 @@ func Cjxl(
 			}
 		})
 	}
-
-	pool.WaitAndClose()
 }
