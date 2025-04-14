@@ -6,6 +6,7 @@ import (
 	"gallery-preprocessor-go/backend/internal/tasks"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 )
 
@@ -73,6 +74,8 @@ func PerformTask(taskCtx context.Context, taskInput TaskInput, progressChan chan
 		}
 		files = append(files, input)
 	}
+
+	slices.Sort(files)
 
 	switch taskInput.TaskID {
 	case TaskArtefact:
