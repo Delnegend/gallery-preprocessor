@@ -7,6 +7,7 @@ import (
 	"gallery-preprocessor-go/backend"
 	"sync"
 
+	"github.com/gen2brain/beeep"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
@@ -132,6 +133,10 @@ func main() {
 					warnChan,
 				)
 				runtime.EventsEmit(ctx, string(TaskDoneEmitID), taskId)
+				err := beeep.Notify("Gallery Preprocessor", fmt.Sprintf("Task %s finished", taskId), "")
+				if err != nil {
+					panic(err)
+				}
 			})
 
 			runtime.EventsOn(ctx, string(CancelTaskEmitID), func(data ...any) {
