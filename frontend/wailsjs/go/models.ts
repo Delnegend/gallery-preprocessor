@@ -7,6 +7,8 @@ export namespace backend {
 	    AvifLossy = "AvifLossy",
 	    Djxl = "Djxl",
 	    Par2 = "Par2",
+	    DifferDiff = "DifferDiff",
+	    DifferJoin = "DifferJoin",
 	}
 
 }
