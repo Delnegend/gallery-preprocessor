@@ -38,8 +38,8 @@ func main() {
 		Title: "gallery-preprocessor-go",
 
 		Width:         320,
-		Height:        400,
-		DisableResize: true,
+		Height:        500,
+		DisableResize: false,
 
 		AlwaysOnTop:      true,
 		AssetServer:      &assetserver.Options{Assets: assets},
