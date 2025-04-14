@@ -86,7 +86,7 @@ onMounted(() => {
 
 // this exists just to takeover webview's drag and drop event
 OnFileDrop(() => { /** */ }, false);
-EventsOn("wails:file-drop", (x, y, paths) => {
+EventsOn("wails:file-drop", (x: number, y: number, paths: string[]) => {
 	const droppedOn = tasks.find((task) => {
 		const { X, Y, Width, Height } = task.Bounds;
 		return x >= X && x <= X + Width && y >= Y && y <= Y + Height;
