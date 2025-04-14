@@ -94,20 +94,14 @@ func main() {
 
 				var taskId backend.TaskID
 				if parsed, ok := data[0].(string); ok {
-					switch parsed {
-					case string(backend.TaskArtefact):
-						taskId = backend.TaskArtefact
-					case string(backend.TaskArtefactAvif):
-						taskId = backend.TaskArtefactAvif
-					case string(backend.TaskCjxlLossLess):
-						taskId = backend.TaskCjxlLossLess
-					case string(backend.TaskAvifLossy):
-						taskId = backend.TaskAvifLossy
-					case string(backend.TaskDjxl):
-						taskId = backend.TaskDjxl
-					case string(backend.TaskPar2):
-						taskId = backend.TaskPar2
-					default:
+					tasks := backend.AllTasks
+					for _, task := range tasks {
+						if string(task.Value) == parsed {
+							taskId = task.Value
+							break
+						}
+					}
+					if taskId == "" {
 						warnChan <- fmt.Errorf("unknown task %s", parsed)
 						return
 					}
