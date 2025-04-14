@@ -59,6 +59,11 @@ func ArtefactAvif(
 		sendWarning(fmt.Errorf("can't create temp dir: %w", err))
 		return
 	}
+	defer func() {
+		if err := os.RemoveAll(tmpDir); err != nil {
+			sendWarning(fmt.Errorf("can't remove temp dir: %w", err))
+		}
+	}()
 
 	pool := utils.NewWorkerPool(ctx, poolSize)
 	defer pool.WaitAndClose()
@@ -107,9 +112,5 @@ func ArtefactAvif(
 				sendWarning(fmt.Errorf("can't check output file '%s': %w", outputAvifFile, err))
 			}
 		})
-	}
-
-	if err := os.RemoveAll(tmpDir); err != nil {
-		sendWarning(fmt.Errorf("can't remove temp dir: %w", err))
 	}
 }
