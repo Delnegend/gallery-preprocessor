@@ -93,7 +93,7 @@ EventsOn("wails:file-drop", (x: number, y: number, paths: string[]) => {
 	});
 	if (droppedOn) {
 		cmdOutputs.value = [];
-		EventsEmit("process", droppedOn.ID, paths);
+		EventsEmit("process", droppedOn.ID, paths.sort());
 	}
 });
 
