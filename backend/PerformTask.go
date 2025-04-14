@@ -18,6 +18,8 @@ var (
 	TaskAvifLossy    TaskID = "AvifLossy"
 	TaskDjxl         TaskID = "Djxl"
 	TaskPar2         TaskID = "Par2"
+	TaskDifferDiff   TaskID = "DifferDiff"
+	TaskDifferJoin   TaskID = "DifferJoin"
 
 	AllTasks = []struct {
 		Value  TaskID
@@ -29,6 +31,8 @@ var (
 		{TaskAvifLossy, string(TaskAvifLossy)},
 		{TaskDjxl, string(TaskDjxl)},
 		{TaskPar2, string(TaskPar2)},
+		{TaskDifferDiff, string(TaskDifferDiff)},
+		{TaskDifferJoin, string(TaskDifferJoin)},
 	}
 )
 
@@ -83,6 +87,10 @@ func PerformTask(taskCtx context.Context, taskInput TaskInput, progressChan chan
 		tasks.Djxl(taskCtx, files, 2, updateProgressBase, sendWarning)
 	case TaskPar2:
 		tasks.Par2(taskCtx, files, 2, updateProgressBase, sendWarning)
+	case TaskDifferDiff:
+		tasks.Differ(taskCtx, files, false, sendWarning)
+	case TaskDifferJoin:
+		tasks.Differ(taskCtx, files, true, sendWarning)
 	default:
 		sendWarning(fmt.Errorf("internal error: unknown task %s", taskInput.TaskID))
 	}

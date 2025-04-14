@@ -44,6 +44,16 @@ const tasks = ([
 		"PAR2",
 		"Create parity files for 7z.<br /><br />Accepts: <code>.7z</code>",
 	],
+	[
+		backend.TaskID.DifferDiff,
+		"Differ diff",
+		"Generate diff images sequence.<br /><br />Accepts: <code>.png</code>",
+	],
+	[
+		backend.TaskID.DifferJoin,
+		"Differ join",
+		"Reconstruct image from diff images sequence.<br /><br />Accepts: <code>.png</code>",
+	]
 ] satisfies Array<[backend.TaskID, string, string]>)
 	.map(([ID, Label, Description]) => ({
 		ID,
