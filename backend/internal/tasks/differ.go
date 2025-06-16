@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"syscall"
 )
 
 func Differ(
@@ -36,7 +35,7 @@ func Differ(
 	args := []string{kind}
 	args = append(args, pngFiles...)
 	cmd := exec.CommandContext(ctx, "differ", args...)
-	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	cmd.SysProcAttr = getSysProcAttr()
 	outputMsgBytes, err := cmd.CombinedOutput()
 	outputMsgString := string(outputMsgBytes)
 	switch {

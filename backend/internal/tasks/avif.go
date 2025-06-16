@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"syscall"
 )
 
 func AvifLossy(
@@ -59,7 +58,7 @@ func AvifLossy(
 			outputFile := utils.ReplaceExt(inputFile, ".avif")
 
 			cmd := exec.CommandContext(ctx, "ffmpeg", "-i", inputFile, "-c:v", "libsvtav1", "-crf", "22", "-preset", "2", "-pix_fmt", "yuv420p10le", "-vf", "scale=ceil(iw/2)*2:ceil(ih/2)*2", "-svtav1-params", "avif=1", outputFile)
-			cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+			cmd.SysProcAttr = getSysProcAttr()
 			outputMsgBytes, err := cmd.CombinedOutput()
 			outputMsgString := string(outputMsgBytes)
 			switch {

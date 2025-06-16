@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"syscall"
 )
 
 func ArtefactAvif(
@@ -77,7 +76,7 @@ func ArtefactAvif(
 
 			// jpg --artefact--> png
 			cmd := exec.CommandContext(ctx, "artefact-cli", inputJpgFile, "-o", outputPngFile, "-i", "50")
-			cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+			cmd.SysProcAttr = getSysProcAttr()
 			outputMsgBytes, err := cmd.CombinedOutput()
 			outputMsgString := string(outputMsgBytes)
 			switch {
@@ -91,7 +90,7 @@ func ArtefactAvif(
 
 			// png -> avif
 			cmd = exec.CommandContext(ctx, "ffmpeg", "-i", outputPngFile, "-c:v", "libsvtav1", "-crf", "22", "-preset", "2", "-pix_fmt", "yuv420p10le", "-vf", "scale=ceil(iw/2)*2:ceil(ih/2)*2", "-svtav1-params", "avif=1", outputAvifFile)
-			cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+			cmd.SysProcAttr = getSysProcAttr()
 			outputMsgBytes, err = cmd.CombinedOutput()
 			outputMsgString = string(outputMsgBytes)
 			switch {
