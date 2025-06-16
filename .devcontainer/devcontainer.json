@@ -1,0 +1,31 @@
+{
+    "name": "gallery-preprocessor-go-dev",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "runArgs": [
+        "-v",
+        "global-pnpm-store:/home/gallery-pp/.pnpm-store",
+        "-v",
+        "${localEnv:XDG_RUNTIME_DIR}/${localEnv:WAYLAND_DISPLAY}:/tmp/wayland-0",
+        "-v",
+        "/tmp/.X11-unix:/tmp/.X11-unix",
+        "--device",
+        "/dev/dri:/dev/dri"
+    ],
+    "containerEnv": {
+        "WAYLAND_DISPLAY": "wayland-0",
+        "XDG_RUNTIME_DIR": "/tmp",
+        "DISPLAY": ":0"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "bradlc.vscode-tailwindcss",
+                "Vue.volar",
+                "golang.go"
+            ]
+        }
+    },
+    "postCreateCommand": "zsh .devcontainer/postinstall.sh"
+}
