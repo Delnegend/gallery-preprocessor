@@ -10,25 +10,25 @@
 		"lint": "eslint --cache --fix ."
 	},
 	"dependencies": {
-		"@tanstack/vue-table": "^8.21.2",
+		"@tanstack/vue-table": "^8.21.3",
 		"clsx": "^2.1.1",
-		"reka-ui": "^2.2.0",
-		"tailwind-merge": "^3.2.0",
-		"vue": "^3.5.13"
+		"reka-ui": "^2.3.1",
+		"tailwind-merge": "^3.3.1",
+		"vue": "^3.5.16"
 	},
 	"devDependencies": {
-		"@types/node": "^22.14.1",
-		"@vitejs/plugin-vue": "^5.2.3",
+		"@types/node": "^24.0.1",
+		"@vitejs/plugin-vue": "^5.2.4",
 		"@vue/tsconfig": "^0.7.0",
 		"autoprefixer": "^10.4.21",
-		"eslint": "^9.24.0",
-		"eslint-plugin-hagemanto": "^5.1.2",
-		"eslint-plugin-vue": "^10.0.0",
+		"eslint": "^9.29.0",
+		"eslint-plugin-hagemanto": "^5.2.5",
+		"eslint-plugin-vue": "^10.2.0",
 		"tailwindcss": "^3.4.17",
 		"tailwindcss-animate": "^1.0.7",
 		"typescript": "~5.8.3",
-		"vite": "^6.2.6",
-		"vue-tsc": "^2.2.8"
+		"vite": "^6.3.5",
+		"vue-tsc": "^2.2.10"
 	},
 	"packageManager": "pnpm@10.4.1+sha512.c753b6c3ad7afa13af388fa6d808035a008e30ea9993f58c6663e2bc5ff21679aa834db094987129aa4d488b86df57f7b634981b2f827cdcacc698cc0cfb88af"
 }
