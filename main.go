@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"gallery-preprocessor-go/backend"
+	"os"
 	"sync"
 
 	"github.com/gen2brain/beeep"
@@ -32,6 +33,8 @@ const (
 )
 
 func main() {
+	_ = os.Setenv("GDK_BACKEND", "wayland")
+
 	app := App{}
 
 	// Create application with options
