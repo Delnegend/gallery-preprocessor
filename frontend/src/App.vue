@@ -53,7 +53,7 @@ const tasks = ([
 		backend.TaskID.DifferJoin,
 		"Differ join",
 		"Reconstruct image from diff images sequence.<br /><br />Accepts: <code>.png</code>",
-	]
+	],
 ] satisfies Array<[backend.TaskID, string, string]>)
 	.map(([ID, Label, Description]) => ({
 		ID,
