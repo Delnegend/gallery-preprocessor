@@ -17,7 +17,7 @@ const props = withDefaults(
 );
 
 const delegatedProps = computed(() => {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, no-unused-vars
 	const { class: _, ...delegated } = props;
 
 	return delegated;
