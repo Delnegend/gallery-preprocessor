@@ -1,4 +1,4 @@
-module gallery-preprocessor-go
+module gallery-preprocessor
 
 go 1.23.0
 

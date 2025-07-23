@@ -3,7 +3,7 @@ package backend
 import (
 	"context"
 	"fmt"
-	"gallery-preprocessor-go/backend/internal/tasks"
+	"gallery-preprocessor/backend/internal/tasks"
 	"os"
 	"path/filepath"
 	"slices"

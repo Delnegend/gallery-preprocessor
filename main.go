@@ -4,7 +4,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
-	"gallery-preprocessor-go/backend"
+	"gallery-preprocessor/backend"
 	"os"
 	"sync"
 
@@ -39,7 +39,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title: "gallery-preprocessor-go",
+		Title: "gallery-preprocessor",
 
 		Width:         320,
 		Height:        500,

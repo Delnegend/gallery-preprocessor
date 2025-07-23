@@ -3,7 +3,7 @@ package tasks
 import (
 	"context"
 	"fmt"
-	"gallery-preprocessor-go/backend/internal/utils"
+	"gallery-preprocessor/backend/internal/utils"
 	"os/exec"
 	"path/filepath"
 	"strings"
