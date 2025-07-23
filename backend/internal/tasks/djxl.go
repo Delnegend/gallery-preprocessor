@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gallery-preprocessor-go/backend/internal/utils"
+	"gallery-preprocessor/backend/internal/utils"
 	"os"
 	"os/exec"
 	"path/filepath"

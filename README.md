@@ -1,4 +1,4 @@
-# gallery-preprocessor-go
+# gallery-preprocessor
 
 ## Build
 ### Prerequisites
