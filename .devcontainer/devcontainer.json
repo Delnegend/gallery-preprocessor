@@ -1,5 +1,5 @@
 {
-    "name": "gallery-preprocessor-go-dev",
+    "name": "gallery-preprocessor",
     "build": {
         "dockerfile": "Dockerfile"
     },
