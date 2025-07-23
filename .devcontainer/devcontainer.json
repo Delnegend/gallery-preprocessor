@@ -23,7 +23,9 @@
             "extensions": [
                 "bradlc.vscode-tailwindcss",
                 "Vue.volar",
-                "golang.go"
+                "golang.go",
+                "esbenp.prettier-vscode",
+                "YoavBls.pretty-ts-errors"
             ]
         }
     },
