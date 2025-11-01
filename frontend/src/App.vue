@@ -6,12 +6,9 @@ import {
 	OnFileDrop,
 	OnFileDropOff
 } from '../wailsjs/runtime/runtime'
-import Button from './components/ui/Button.vue'
-import {
-	HoverCard,
-	HoverCardContent,
-	HoverCardTrigger
-} from './components/ui/hover-card'
+import HoverCard from './components/ui/hover-card/HoverCard.vue'
+import HoverCardContent from './components/ui/hover-card/HoverCardContent.vue'
+import HoverCardTrigger from './components/ui/hover-card/HoverCardTrigger.vue'
 import { cn } from './lib/utils'
 import { onMounted, onUnmounted, ref } from 'vue'
 
@@ -128,22 +125,20 @@ onUnmounted(() => {
 </script>
 
 <template>
-	<div class="grid h-dvh grid-rows-[auto,auto,1fr]">
-		<Button
-			variant="destructive"
-			class="top-0 h-12 w-full rounded-none text-xl"
-			size="lg"
+	<div class="grid h-dvh grid-rows-[auto_auto_1fr]">
+		<button
+			class="top-0 inline-flex h-10 h-12 w-full items-center justify-center gap-2 bg-destructive px-8 text-xl font-medium whitespace-nowrap text-destructive-foreground shadow-xs transition-colors hover:bg-destructive/90 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
 			:onclick="
 				() => EventsEmit(main.OtherEmitID.CancelTask, runningTask)
 			"
 			:disabled="runningTask === null"
 		>
 			Cancel Task
-		</Button>
+		</button>
 
 		<div class="relative grid grid-cols-3 grid-rows-2">
 			<div
-				class="absolute left-0 top-0 -z-10 size-full bg-secondary transition-transform"
+				class="absolute top-0 left-0 -z-10 size-full bg-secondary transition-transform"
 				:style="{
 					transform: `translateX(-${(1 - progress) * 100}%)`
 				}"
@@ -154,20 +149,20 @@ onUnmounted(() => {
 				:id="task.ID"
 				:class="
 					cn(
-						'border text-base border-secondary-foreground/30 backdrop-blur-sm px-3 py-2 flex justify-center items-center h-full text-center',
-						runningTask === task.ID && 'text-blue-400 font-black',
+						'flex h-full items-center justify-center border border-secondary-foreground/30 px-3 py-2 text-center text-base backdrop-blur-xs',
+						runningTask === task.ID && 'font-black text-blue-400',
 						runningTask !== null &&
 							runningTask !== task.ID &&
-							'text-secondary-foreground/50 font-extralight'
+							'font-extralight text-secondary-foreground/50'
 					)
 				"
 			>
 				<HoverCard :openDelay="500" :closeDelay="100">
-					<HoverCardTrigger class="select-none underline-offset-4">
+					<HoverCardTrigger class="underline-offset-4 select-none">
 						{{ task.Label }}
 					</HoverCardTrigger>
 					<HoverCardContent
-						class="text-balance px-3 py-2 text-sm text-primary/80"
+						class="px-3 py-2 text-sm text-balance text-primary/80"
 					>
 						<span v-html="task.Description" />
 					</HoverCardContent>
