@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"gallery-preprocessor/backend"
+	"log/slog"
 	"os"
 	"sync"
 
@@ -136,9 +137,8 @@ func main() {
 					warnChan,
 				)
 				runtime.EventsEmit(ctx, string(TaskDoneEmitID), taskId)
-				err := beeep.Notify("Gallery Preprocessor", fmt.Sprintf("Task %s finished", taskId), "")
-				if err != nil {
-					panic(err)
+				if err := beeep.Notify("Gallery Preprocessor", fmt.Sprintf("Task %s finished", taskId), ""); err != nil {
+					slog.Warn("failed to send notification", "error", err)
 				}
 			})
 
@@ -152,6 +152,6 @@ func main() {
 	})
 
 	if err != nil {
-		println("Error:", err.Error())
+		slog.Error("can't start application", "error", err)
 	}
 }
