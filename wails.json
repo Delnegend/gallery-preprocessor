@@ -2,9 +2,9 @@
 	"$schema": "https://wails.io/schemas/config.v2.json",
 	"name": "gallery-preprocessor",
 	"outputfilename": "gallery-preprocessor",
-	"frontend:install": "pnpm install",
-	"frontend:build": "pnpm build",
-	"frontend:dev:watcher": "pnpm dev",
+	"frontend:install": "bun i",
+	"frontend:build": "bun run build",
+	"frontend:dev:watcher": "bun run dev",
 	"frontend:dev:serverUrl": "auto",
 	"author": {
 		"name": "Delnegend",
