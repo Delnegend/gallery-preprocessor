@@ -1,52 +1,37 @@
 #!/usr/bin/env bash
 
-# zsh
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-
-# node
-curl https://get.volta.sh | bash
-export VOLTA_HOME="$HOME/.volta" && export PATH="$VOLTA_HOME/bin:$PATH"
-echo 'export VOLTA_HOME="$HOME/.volta"' >> ~/.zshrc
-echo 'export PATH="$VOLTA_HOME/bin:$PATH"' >> ~/.zshrc
-volta install node@lts pnpm && pnpm config set store-dir ~/.pnpm-store
-cd frontend && pnpm install && cd ..
-
 # just
-ver="1.42.3"
-curl -L -o /tmp/just.tar.gz https://github.com/casey/just/releases/download/$ver/just-$ver-x86_64-unknown-linux-musl.tar.gz
-checksum=$(openssl dgst -sha3-512 /tmp/just.tar.gz | awk '{print $2}')
-expected="939eef7b9105e4805825b6cf7aac7bb2e8daf1aa07e4e8cfce619e1e447a444847318abd0c7e0ac3553e80a98e8d465158c7574e1fc7d2232e839b021f9dad67"
-if [ ! "$checksum" = "$expected" ]; then
-    echo "just tarball checksum failed\nexpected: $expected\ngot: $checksum"
+ver="1.43.0"
+curl -L -o /tmp/just.tar.gz "https://github.com/casey/just/releases/download/$ver/just-$ver-x86_64-unknown-linux-musl.tar.gz"
+checksum="a1bc93654f31669fd964ea3011a5e5e9676b9b6f8adcd762606e5140632ea72d"
+if [ ! "$(sha256sum /tmp/just.tar.gz | awk '{print $1}')" = "$checksum" ]; then
+    echo "just checksum failed"
 else
-    sudo rm -rf /usr/local/bin/just
     sudo tar -xf /tmp/just.tar.gz -C /usr/local/bin just
 fi
 rm -f /tmp/just.tar.gz
-echo 'alias j=just' >> ~/.zshrc
-just --completions zsh > ~/.just.zsh
-echo '[[ -f ~/.just.zsh ]] && source ~/.just.zsh' >> ~/.zshrc
+echo 'alias j=just' >> ~/.bashrc
+echo 'eval "$(just --completions bash)"' >> ~/.bashrc
+echo 'complete -F _just j' >> ~/.bashrc
 
 # go
-if [ -f /usr/local/go/bin/go ]; then
-    echo "Go is already installed."
+ver="1.25.3"
+curl -L -o /tmp/go.tar.gz "https://go.dev/dl/go$ver.linux-amd64.tar.gz"
+checksum="0335f314b6e7bfe08c3d0cfaa7c19db961b7b99fb20be62b0a826c992ad14e0f"
+if [ ! "$(sha256sum /tmp/go.tar.gz | awk '{print $1}')" = "$checksum" ]; then
+    echo "go checksum failed"
 else
-    echo "Installing Go..."
-    wget https://go.dev/dl/go1.24.4.linux-amd64.tar.gz -O go.tar.gz
-    sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go.tar.gz
-    rm go.tar.gz
+    sudo tar -xf /tmp/go.tar.gz -C /usr/local go
 fi
-
-# PATH stuffs
-if [[ ":$PATH:" != *":/usr/local/go/bin:"* ]]; then
-    echo "Adding /usr/local/go/bin to PATH..."
-    echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.zshrc
-    source ~/.zshrc
-fi
-if [[ ":$PATH:" != *":~/go/bin:"* ]]; then
-    echo "Adding ~/go/bin to PATH..."
-    echo 'export PATH=$PATH:~/go/bin' >> ~/.zshrc
-    source ~/.zshrc
-fi
+rm -f /tmp/go.tar.gz
+echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+echo 'export PATH=$PATH:~/go/bin' >> ~/.bashrc
+export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:~/go/bin
 
 go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+# bun
+curl -fsSL https://bun.sh/install | bash
+echo 'export BUN_INSTALL="$HOME/.bun"' >> ~/.bashrc
+echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> ~/.bashrc
