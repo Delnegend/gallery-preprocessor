@@ -12,5 +12,5 @@ lint:
 	go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -test ./...
 
 	cd frontend && \
-		bun run oxlint --import-plugin -D correctness -D perf --ignore-pattern wailsjs/**/*.* && \
-		bun run prettier -l -w "**/*.{js,ts,vue,json,css}"
+		bun x oxlint --import-plugin -D correctness -D perf --ignore-pattern wailsjs/**/*.* && \
+		bun x prettier -l -w "**/*.{js,ts,vue,json,css}"
