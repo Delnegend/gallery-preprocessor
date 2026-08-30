@@ -2,21 +2,21 @@ export namespace backend {
 	export enum TaskID {
 		Artefact = 'Artefact',
 		ArtefactAvif = 'ArtefactAvif',
-		CjxlLossless = 'CjxlLossless',
 		AvifLossy = 'AvifLossy',
-		Djxl = 'Djxl',
-		Par2 = 'Par2',
+		CjxlLossless = 'CjxlLossless',
 		DifferDiff = 'DifferDiff',
-		DifferJoin = 'DifferJoin'
+		DifferJoin = 'DifferJoin',
+		Djxl = 'Djxl',
+		Par2 = 'Par2'
 	}
 }
 
 export namespace main {
 	export enum OtherEmitID {
-		Progress = 'Progress',
-		Warning = 'Warning',
 		CancelTask = 'CancelTask',
+		Progress = 'Progress',
 		TaskDone = 'TaskDone',
-		TaskStart = 'TaskStart'
+		TaskStart = 'TaskStart',
+		Warning = 'Warning'
 	}
 }

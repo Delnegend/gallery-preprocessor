@@ -10,23 +10,24 @@
 	},
 	"dependencies": {
 		"clsx": "^2.1.1",
-		"reka-ui": "^2.6.1",
-		"tailwind-merge": "^3.4.0",
-		"vue": "^3.5.25"
+		"reka-ui": "^2.10.4",
+		"tailwind-merge": "^3.6.0",
+		"vue": "^3.5.42"
 	},
 	"devDependencies": {
-		"@tailwindcss/vite": "^4.1.18",
-		"@trivago/prettier-plugin-sort-imports": "^5.2.2",
-		"@vitejs/plugin-vue": "^6.0.3",
-		"@vue/tsconfig": "^0.8.1",
-		"oxlint": "^1.32.0",
-		"prettier": "^3.7.4",
-		"prettier-plugin-tailwindcss": "^0.7.2",
-		"tailwindcss": "^4.1.18",
+		"@tailwindcss/vite": "^4.3.3",
+		"@trivago/prettier-plugin-sort-imports": "^6.0.2",
+		"@types/node": "^26.4.0",
+		"@vitejs/plugin-vue": "^6.0.8",
+		"@vue/tsconfig": "^0.9.1",
+		"oxlint": "^1.80.0",
+		"prettier": "^3.9.6",
+		"prettier-plugin-tailwindcss": "^0.8.1",
+		"tailwindcss": "^4.3.3",
 		"tailwindcss-animate": "^1.0.7",
-		"typescript": "^5.9.3",
-		"vite": "^7.2.7",
-		"vue-tsc": "^3.1.8"
+		"typescript": "^7.0.2",
+		"vite": "^8.2.2",
+		"vue-tsc": "^3.3.11"
 	},
 	"prettier": {
 		"semi": false,
