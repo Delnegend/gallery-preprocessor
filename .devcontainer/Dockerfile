@@ -35,5 +35,8 @@ USER gallery
 RUN go install github.com/wailsapp/wails/v2/cmd/wails@v2.15.0
 RUN curl -fsSL https://bun.sh/install | bash && sudo ln -sf /home/gallery/.bun/bin/bun /usr/local/bin/bun
 
+# just completions for interactive shells (was in postinstall.sh, now in image for cache)
+RUN echo 'eval "$(just --completions bash)"' >> /home/gallery/.bashrc
+
 # Ensure wails/bun are in PATH for non-interactive shells (Zed, `just build`)
 ENV PATH="/home/gallery/.bun/bin:/home/gallery/go/bin:/usr/local/go/bin:${PATH}"
