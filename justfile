@@ -1,5 +1,5 @@
 @default:
-	just --list
+	just --choose
 
 build:
 	wails build
@@ -7,9 +7,11 @@ build:
 dev:
 	wails dev
 
-lint:
+check:
 	#!/usr/bin/env bash
-	go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -test ./...
+
+	go fmt
+	go vet
 
 	cd frontend && \
 		bun x oxlint --import-plugin -D correctness -D perf --ignore-pattern wailsjs/**/*.* && \
