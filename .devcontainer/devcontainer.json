@@ -3,7 +3,10 @@
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
+	"containerUser": "gallery",
+	"remoteUser": "gallery",
 	"runArgs": [
+		"--hostname=gallery",
 		"-v",
 		"${localEnv:XDG_RUNTIME_DIR}/${localEnv:WAYLAND_DISPLAY}:/tmp/wayland-0",
 		"-v",
