@@ -120,22 +120,30 @@ jobs:
           sudo apt-get install -y -qq --no-install-recommends \
             build-essential libgtk-3-dev libwebkit2gtk-4.1-dev pkg-config
 
-      - name: Build frontend
+      # Local build validation — always run, but don't block PR creation.
+      # PR's full-matrix CI (ci.yml) is the merge gate; this is just early feedback.
+      - name: Build frontend (local gate)
         if: steps.changes.outputs.changed == 'true'
+        continue-on-error: true
+        id: local-frontend
         run: |
           cd frontend
           bun install
           bun run build
 
-      - name: Validate Go build
+      - name: Validate Go build (local gate)
         if: steps.changes.outputs.changed == 'true'
+        continue-on-error: true
+        id: local-go
         run: |
           go vet ./...
           test -z "$(gofmt -l .)"
           go build -tags webkit2_41 ./...
 
-      - name: Build gate — fail before PR if pipeline would break
+      - name: Build gate — local checks (just check)
         if: steps.changes.outputs.changed == 'true'
+        continue-on-error: true
+        id: local-check
         run: |
           echo "Build gate: running just check (go fmt+vet, oxlint, prettier)..."
           if command -v just >/dev/null 2>&1; then
@@ -146,11 +154,11 @@ jobs:
             test -z "$(gofmt -l .)"
             (cd frontend && bun x oxlint --import-plugin -D correctness -D perf --ignore-pattern wailsjs/**/*.* && bun x prettier --check "**/*.{js,ts,vue,json,css}")
           fi
-          echo "Build gate passed — PR will be opened."
+          echo "Local checks done — PR will be opened and full-matrix CI will gate merge."
 
       - name: Draft PR body from the dependency diff
         id: prbody
-        if: steps.changes.outputs.changed == 'true'
+        if: always() && steps.changes.outputs.changed == 'true'
         run: |
           {
             echo "## Dependency changes"
@@ -186,7 +194,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Open PR for review
-        if: steps.changes.outputs.changed == 'true'
+        if: always() && steps.changes.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

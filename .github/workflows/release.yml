@@ -16,7 +16,6 @@ on:
   pull_request:
     types: [closed]
     branches:
-      - next
       - main
 
 env:
