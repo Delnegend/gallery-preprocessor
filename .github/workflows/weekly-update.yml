@@ -89,8 +89,22 @@ jobs:
           go mod tidy
 
           # Frontend dependencies with minimum release age (2 weeks)
+          # Hold: typescript is aliased to TS6 for vue-tsc until TS 7.1 ships stable API
+          # (vuejs/language-tools#6124, https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#typescript-and-embedded-languages)
+          # Overrides in frontend/package.json + renovate.json cap it at <7; verify after update.
           cd frontend
           bun update --latest --minimum-release-age ${{ env.BUN_MIN_RELEASE_AGE }}
+
+          echo "Verifying typescript hold (should remain aliased to TS6)..."
+          if ! grep -q '"typescript": "npm:@typescript/typescript6' package.json; then
+            echo "::warning::typescript hold violated — package.json no longer aliased to TS6 after bun update. Restoring..."
+            echo "Current: $(grep '"typescript"' package.json)"
+            echo "This should have been capped by overrides (package.json:overrides) and renovate.json."
+            echo "For safety, workflow will fail here to avoid opening a broken PR."
+            echo "Fix: ensure overrides and renovate rule are intact, or re-pin to npm:@typescript/typescript6@6.0.2"
+            exit 1
+          fi
+          echo "Hold OK: $(grep '"typescript"' package.json | head -1)"
 
       - name: Check for changes
         id: changes
@@ -119,6 +133,20 @@ jobs:
           go vet ./...
           test -z "$(gofmt -l .)"
           go build -tags webkit2_41 ./...
+
+      - name: Build gate — fail before PR if pipeline would break
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          echo "Build gate: running just check (go fmt+vet, oxlint, prettier)..."
+          if command -v just >/dev/null 2>&1; then
+            just check
+          else
+            echo "just not found, running checks directly..."
+            go vet ./...
+            test -z "$(gofmt -l .)"
+            (cd frontend && bun x oxlint --import-plugin -D correctness -D perf --ignore-pattern wailsjs/**/*.* && bun x prettier --check "**/*.{js,ts,vue,json,css}")
+          fi
+          echo "Build gate passed — PR will be opened."
 
       - name: Draft PR body from the dependency diff
         id: prbody

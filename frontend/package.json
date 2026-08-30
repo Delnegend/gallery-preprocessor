@@ -30,6 +30,10 @@
 		"vue-tsc": "^3.3.11",
 		"@typescript/native": "npm:typescript@7.0.2"
 	},
+	"overrides": {
+		"typescript": "npm:@typescript/typescript6@6.0.2"
+	},
+	"//": "Hold typescript at 6 via alias until vue-tsc supports TS 7.1 API (vuejs/language-tools#6124, https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#typescript-and-embedded-languages) — @typescript/native provides native TS7 tsc. Remove hold when vue-tsc supports TS7.",
 	"prettier": {
 		"semi": false,
 		"singleQuote": true,
