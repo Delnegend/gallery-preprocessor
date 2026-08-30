@@ -21,6 +21,7 @@ jobs:
           go-version-file: go.mod
           cache: true
       - uses: oven-sh/setup-bun@v2
+      - uses: extractions/setup-just@v3
       - name: Install Linux dependencies
         run: |
           sudo apt-get update -qq
