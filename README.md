@@ -83,4 +83,3 @@ just check   # go fmt + go vet + oxlint + prettier
 ## License
 
 MIT
-fake dependabot test
