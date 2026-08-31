@@ -36,7 +36,7 @@ jobs:
         uses: extractions/setup-just@v3
 
       - name: Update Go dependencies (min-age)
-        uses: ./.github/actions/go-min-age
+        uses: Delnegend/actions/go-min-age@v1
         with:
           min-age: ${{ env.GO_MIN_RELEASE_AGE }}
 
