@@ -83,8 +83,12 @@ jobs:
 
             if [ -n "$TO_UPDATE" ]; then
               echo "Updating:$TO_UPDATE"
-              # shellcheck disable=SC2086
-              go get $TO_UPDATE
+              # Use -d (download only) per-module to avoid build-time transitive conflicts
+              # (e.g., glamour@v1.0.0 requires lipgloss@v1.1.1, bulk go get can pick incompatible v1.1.0)
+              for mod in $TO_UPDATE; do
+                echo "go get -d $mod"
+                go get -d "$mod" || echo "::warning::go get -d $mod failed, will try go mod tidy"
+              done
             else
               echo "No Go modules passed min-age filter"
             fi
@@ -115,49 +119,6 @@ jobs:
           if [ -n "$(git status --porcelain)" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: Install system dependencies
-        if: steps.changes.outputs.changed == 'true'
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends \
-            build-essential libgtk-3-dev libwebkit2gtk-4.1-dev pkg-config
-
-      # Local build validation — always run, but don't block PR creation.
-      # PR's full-matrix CI (ci.yml) is the merge gate; this is just early feedback.
-      - name: Build frontend (local gate)
-        if: steps.changes.outputs.changed == 'true'
-        continue-on-error: true
-        id: local-frontend
-        run: |
-          cd frontend
-          bun install
-          bun run build
-
-      - name: Validate Go build (local gate)
-        if: steps.changes.outputs.changed == 'true'
-        continue-on-error: true
-        id: local-go
-        run: |
-          go vet ./...
-          test -z "$(gofmt -l .)"
-          go build -tags webkit2_41 ./...
-
-      - name: Build gate — local checks (just check)
-        if: steps.changes.outputs.changed == 'true'
-        continue-on-error: true
-        id: local-check
-        run: |
-          echo "Build gate: running just check (go fmt+vet, oxlint, prettier)..."
-          if command -v just >/dev/null 2>&1; then
-            just check
-          else
-            echo "just not found, running checks directly..."
-            go vet ./...
-            test -z "$(gofmt -l .)"
-            (cd frontend && bun x oxlint --import-plugin -D correctness -D perf --ignore-pattern wailsjs/**/*.* && bun x prettier --check "**/*.{js,ts,vue,json,css}")
-          fi
-          echo "Local checks done — PR will be opened and full-matrix CI will gate merge."
 
       - name: Draft PR body from the dependency diff
         id: prbody
