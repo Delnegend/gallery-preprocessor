@@ -1,99 +1,157 @@
-name: Release
+name: Release / Build Artifacts
 
 on:
   workflow_dispatch:
     inputs:
-      release_version:
-        description: Release version (e.g. 0.1.0) - leave empty for auto patch bump
+      target:
+        description: "Release mode / build target"
+        required: true
+        type: choice
+        default: "new-tag"
+        options:
+          - new-tag  # Gate on CI -> tag & push -> build & publish release
+          - tag      # Rebuild existing tag -> build & publish release
+          - commit   # Test build latest commit -> upload Actions artifacts only (no release)
+      ref:
+        description: "Custom tag or commit SHA (optional, defaults to latest)"
         required: false
         type: string
-        default: ""
-      create_release:
-        description: Push to GitHub Releases
-        required: true
-        type: boolean
-        default: false
-  pull_request:
-    types: [closed]
-    branches:
-      - main
+  schedule:
+    - cron: '0 0 * * 0' # Weekly: Sunday 00:00 UTC (defaults to target: new-tag)
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
 
 env:
   BINARY_NAME: gallery-preprocessor
 
-permissions:
-  contents: read
-
 jobs:
   prepare:
-    name: Prepare
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' &&
-       github.event.pull_request.merged == true &&
-       contains(github.event.pull_request.labels.*.name, 'dependencies'))
+    name: Prepare / Bump Version
+    runs-on: ubuntu-latest   # full runner: it runs `just check`
+    timeout-minutes: 30
     outputs:
-      release_version: ${{ steps.version.outputs.version }}
-      create_release: ${{ steps.version.outputs.create_release }}
+      ref: ${{ steps.resolve.outputs.ref }}
+      version: ${{ steps.resolve.outputs.version }}
+      publish: ${{ steps.resolve.outputs.publish }}
+      skip: ${{ steps.resolve.outputs.skip }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
+          token: ${{ github.token }}
+          persist_credentials: true
           fetch-depth: 0
 
-      - name: Determine version
-        id: version
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - uses: oven-sh/setup-bun@v2
+
+      - uses: extractions/setup-just@v4
+
+      - name: Install Linux dependencies
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            if [ -n "${{ inputs.release_version }}" ]; then
-              echo "version=${{ inputs.release_version }}" >> "$GITHUB_OUTPUT"
-              echo "create_release=${{ inputs.create_release }}" >> "$GITHUB_OUTPUT"
-            else
-              # Auto patch bump when dispatched without explicit version (from dependabot-auto-merge)
-              LATEST_TAG="$(git describe --tags --abbrev=0 2>/dev/null || echo 'v0.0.0')"
-              PLAIN_VERSION="${LATEST_TAG#v}"
-              IFS='.' read -r major minor patch <<< "$PLAIN_VERSION"
-              major="${major:-0}"
-              minor="${minor:-1}"
-              patch="${patch:-0}"
-              if [ "$LATEST_TAG" = "v0.0.0" ]; then
-                NEXT_VERSION="0.1.0"
-              else
-                NEXT_PATCH=$((patch + 1))
-                NEXT_VERSION="${major}.${minor}.${NEXT_PATCH}"
-              fi
-              echo "Latest tag: $LATEST_TAG, computed next patch version: $NEXT_VERSION"
-              echo "version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
-              echo "create_release=${{ inputs.create_release }}" >> "$GITHUB_OUTPUT"
-            fi
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            build-essential libgtk-3-dev libwebkit2gtk-4.1-dev pkg-config
+
+      - name: Install frontend dependencies
+        run: cd frontend && bun install
+
+      - name: Build frontend for embed
+        run: cd frontend && bun run build
+
+      # -----------------------------------------------------------------------
+      # Mode 1: new-tag (calculate semver -> CI gate -> tag & push)
+      # -----------------------------------------------------------------------
+      - name: Calculate Next SemVer
+        if: (inputs.target || 'new-tag') == 'new-tag'
+        id: semver
+        uses: ietf-tools/semver-action@v1
+        with:
+          token: ${{ github.token }}
+          fallbackTag: v0.0.0
+          noNewCommitBehavior: silent
+          noVersionBumpBehavior: patch
+
+      - name: CI Gate (verify code is green before tagging)
+        if: (inputs.target || 'new-tag') == 'new-tag' && steps.semver.outputs.bump != 'none'
+        run: just check
+
+      - name: Bump package manager version
+        if: (inputs.target || 'new-tag') == 'new-tag' && steps.semver.outputs.bump != 'none'
+        env:
+          NEXT_STRICT: ${{ steps.semver.outputs.nextStrict }}
+        run: just bump "$NEXT_STRICT"
+
+      - name: Commit the bump (skipped when the project has no manifest)
+        if: (inputs.target || 'new-tag') == 'new-tag' && steps.semver.outputs.bump != 'none'
+        env:
+          NEXT_TAG: ${{ steps.semver.outputs.next }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "actions@users.noreply.github.com"
+
+          git add -u
+          if git diff --staged --quiet; then
+            echo "no manifest to bump — tagging HEAD"
           else
-            # Calculate next patch version from latest tag
-            LATEST_TAG="$(git describe --tags --abbrev=0 2>/dev/null || echo 'v0.0.0')"
-            PLAIN_VERSION="${LATEST_TAG#v}"
-            IFS='.' read -r major minor patch <<< "$PLAIN_VERSION"
-            major="${major:-0}"
-            minor="${minor:-1}"
-            patch="${patch:-0}"
-            if [ "$LATEST_TAG" = "v0.0.0" ]; then
-              NEXT_VERSION="0.1.0"
-            else
-              NEXT_PATCH=$((patch + 1))
-              NEXT_VERSION="${major}.${minor}.${NEXT_PATCH}"
+            git commit -m "chore(release): ${NEXT_TAG}"
+          fi
+
+          git rev-parse -q --verify "refs/tags/${NEXT_TAG}" >/dev/null && { echo "::error::tag ${NEXT_TAG} already exists"; exit 1; }
+          git tag -a "${NEXT_TAG}" -m "Release ${NEXT_TAG}"
+
+          git push origin HEAD:main "refs/tags/${NEXT_TAG}"
+
+      # -----------------------------------------------------------------------
+      # Resolve outputs for the build job
+      # -----------------------------------------------------------------------
+      - name: Resolve outputs
+        id: resolve
+        env:
+          TARGET: ${{ inputs.target || 'new-tag' }}
+          INPUT_REF: ${{ inputs.ref }}
+          BUMP: ${{ steps.semver.outputs.bump }}
+          CURRENT: ${{ steps.semver.outputs.current }}
+          NEXT: ${{ steps.semver.outputs.next }}
+          NEXT_STRICT: ${{ steps.semver.outputs.nextStrict }}
+        run: |
+          set -euo pipefail
+          if [ "$TARGET" = "new-tag" ]; then
+            if [ "$BUMP" = "none" ]; then
+              echo "No version bump needed (current: ${CURRENT:-none})."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
             fi
-            echo "Latest tag: $LATEST_TAG, computed next patch version: $NEXT_VERSION"
-            echo "version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
-            echo "create_release=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "ref=$NEXT"
+              echo "version=$NEXT_STRICT"
+              echo "publish=true"
+              echo "skip=false"
+            } >> "$GITHUB_OUTPUT"
+          elif [ "$TARGET" = "tag" ]; then
+            TAG="${INPUT_REF:-$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1 || true)}"
+            [ -n "$TAG" ] || { echo "::error::No release tag found"; exit 1; }
+            { echo "ref=$TAG"; echo "version=${TAG#v}"; echo "publish=true"; echo "skip=false"; } >> "$GITHUB_OUTPUT"
+          else
+            SHA="${INPUT_REF:-$(git rev-parse HEAD)}"
+            { echo "ref=$SHA"; echo "version=$SHA"; echo "publish=false"; echo "skip=false"; } >> "$GITHUB_OUTPUT"
+            echo "Running test build against commit $SHA (will not publish release)"
           fi
 
   build:
     name: Build (${{ matrix.platform }})
     needs: prepare
+    if: needs.prepare.outputs.skip != 'true'
     runs-on: ${{ matrix.os }}
-    permissions:
-      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -110,10 +168,12 @@ jobs:
             goos: windows
             goarch: amd64
             platform: windows/amd64
-
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.ref }}
+          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v7
@@ -140,37 +200,49 @@ jobs:
 
       - name: Build Wails App (Linux)
         if: matrix.goos == 'linux'
+        env:
+          PLATFORM: ${{ matrix.platform }}
         run: |
-          export PATH="$PATH:$(go env GOPATH)/bin"
-          wails build -platform ${{ matrix.platform }} -clean -tags webkit2_41
+          go_bin="$(go env GOPATH)/bin"
+          export PATH="$PATH:$go_bin"
+          wails build -platform "$PLATFORM" -clean -tags webkit2_41
 
       - name: Build Wails App (macOS)
         if: matrix.goos == 'darwin'
+        env:
+          PLATFORM: ${{ matrix.platform }}
         run: |
-          export PATH="$PATH:$(go env GOPATH)/bin"
-          wails build -platform ${{ matrix.platform }} -clean
+          go_bin="$(go env GOPATH)/bin"
+          export PATH="$PATH:$go_bin"
+          wails build -platform "$PLATFORM" -clean
 
       - name: Build Wails App (Windows)
         if: matrix.goos == 'windows'
         shell: bash
+        env:
+          PLATFORM: ${{ matrix.platform }}
         run: |
-          export PATH="$PATH:$(go env GOPATH)/bin"
-          wails build -platform ${{ matrix.platform }} -nsis -clean
+          go_bin="$(go env GOPATH)/bin"
+          export PATH="$PATH:$go_bin"
+          wails build -platform "$PLATFORM" -nsis -clean
 
       - name: Compress binaries
         shell: bash
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
         run: |
-          base="${{ env.BINARY_NAME }}-${{ matrix.goos }}-${{ matrix.goarch }}"
+          base="${BINARY_NAME}-${GOOS}-${GOARCH}"
           mkdir -p "$base"
-          if [ "${{ matrix.goos }}" = "windows" ]; then
-            cp build/bin/${{ env.BINARY_NAME }}.exe "$base/"
+          if [ "$GOOS" = "windows" ]; then
+            cp "build/bin/${BINARY_NAME}.exe" "$base/"
             cp build/bin/*-installer.exe "$base/" 2>/dev/null || true
             7z a -t7z "${base}.7z" "$base"
-          elif [ "${{ matrix.goos }}" = "darwin" ]; then
-            cp -R "build/bin/${{ env.BINARY_NAME }}.app" "$base/"
+          elif [ "$GOOS" = "darwin" ]; then
+            cp -R "build/bin/${BINARY_NAME}.app" "$base/"
             tar -cJf "${base}.tar.xz" "$base"
           else
-            cp "build/bin/${{ env.BINARY_NAME }}" "$base/"
+            cp "build/bin/${BINARY_NAME}" "$base/"
             tar -cJf "${base}.tar.xz" "$base"
           fi
           rm -rf "$base"
@@ -181,32 +253,47 @@ jobs:
         with:
           name: ${{ env.BINARY_NAME }}-${{ matrix.goos }}-${{ matrix.goarch }}
           path: ${{ env.BINARY_NAME }}-${{ matrix.goos }}-${{ matrix.goarch }}*
+          if-no-files-found: error
 
-  release:
-    name: Release
+  publish:
+    name: Publish Release
     needs: [prepare, build]
-    if: needs.prepare.outputs.create_release == 'true'
+    if: needs.prepare.outputs.publish == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    env:
-      VERSION: ${{ needs.prepare.outputs.release_version }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          ref: ${{ needs.prepare.outputs.ref }}
           fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
 
       - name: Generate release notes from commits since the last tag
         id: notes
+        env:
+          RELEASE_REF: ${{ needs.prepare.outputs.ref }}
+          VERSION: ${{ needs.prepare.outputs.version }}
         run: |
-          PREV="$(git describe --tags --abbrev=0 2>/dev/null || true)"
+          set -euo pipefail
+          CURRENT="$RELEASE_REF"
+          # The tag we are releasing already points at HEAD, so describe from
+          # its parent: that is the previous release, not this one.
+          if git rev-parse -q --verify "refs/tags/${CURRENT}" >/dev/null; then
+            PREV="$(git describe --tags --abbrev=0 "${CURRENT}^" 2>/dev/null || true)"
+          else
+            PREV="$(git describe --tags --abbrev=0 2>/dev/null || true)"
+          fi
           if [ -n "$PREV" ]; then
-            RANGE="$PREV..HEAD"
+            RANGE="${PREV}..${CURRENT}"
             COMPARE="https://github.com/${GITHUB_REPOSITORY}/compare/${PREV}...v${VERSION}"
           else
-            RANGE="$(git rev-list --max-parents=0 HEAD | tail -1)..HEAD"
+            RANGE="$(git rev-list --max-parents=0 HEAD | tail -1)..${CURRENT}"
             COMPARE=""
           fi
           echo "Generating notes for range $RANGE"
@@ -240,18 +327,9 @@ jobs:
           cat notes.md
           echo "notes=$PWD/notes.md" >> "$GITHUB_OUTPUT"
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v8
-        with:
-          path: artifacts
-
-      - name: Create Release
+      - name: Publish Consolidated Release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: v${{ needs.prepare.outputs.release_version }}
-          name: v${{ needs.prepare.outputs.release_version }}
+          tag_name: ${{ needs.prepare.outputs.ref }}
           body_path: ${{ steps.notes.outputs.notes }}
-          draft: false
-          prerelease: false
-          files: |
-            artifacts/**/*
+          files: artifacts/**/*
