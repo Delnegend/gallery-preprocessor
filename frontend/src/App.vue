@@ -44,7 +44,7 @@ const tasks = (
 		[
 			backend.TaskID.AvifLossy,
 			'AVIF (Lossy)',
-			'Compress JPG/PNG to JXL (lossy).',
+			'Compress JPG/PNG to AVIF (lossy).',
 			['.jpg', '.png']
 		],
 		[backend.TaskID.Djxl, 'DJXL', 'Decompress JXL to JPG/PNG.', ['.jxl']],
