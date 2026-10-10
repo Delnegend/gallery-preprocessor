@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"sync"
 )
 
 type TaskID string
@@ -43,9 +42,6 @@ type TaskInput struct {
 }
 
 func PerformTask(taskCtx context.Context, taskInput TaskInput, progressChan chan<- float64, warnChan chan<- error) {
-	var taskMutex sync.Mutex
-	taskMutex.Lock()
-
 	updateProgressBase := func(f func() float64) func() {
 		return func() { go func() { progressChan <- f() }() }
 	}

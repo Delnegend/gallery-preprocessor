@@ -1,3 +1,7 @@
 [install]
 # Supply chain security: quarantine any package version for 14 days (1209600s)
 minimumReleaseAge = 1209600
+# GHSA-68fv-2mgg-jv7q (source-map-js, CVSS 8.7) is fixed in 1.2.2, published
+# 2026-09-30 — still inside the quarantine. Exempt the package so the fix can
+# land now; the line can go once 1.2.2 is older than the window.
+minimumReleaseAgeExcludes = ["source-map-js"]

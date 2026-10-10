@@ -26,48 +26,47 @@ const tasks = (
 		[
 			backend.TaskID.Artefact,
 			'Artefact',
-			'Remove JPEG artifacts and output PNG.<br /><br />Accepts: <code>.jpg</code>'
+			'Remove JPEG artifacts and output PNG.',
+			['.jpg']
 		],
 		[
 			backend.TaskID.ArtefactAvif,
 			'Artefact + AVIF (Lossy)',
-			'Remove JPEG artifacts and output PNG, then compress to AVIF (lossy).<br /><br />Accepts: <code>.jpg</code>'
+			'Remove JPEG artifacts and output PNG, then compress to AVIF (lossy).',
+			['.jpg']
 		],
 		[
 			backend.TaskID.CjxlLossless,
 			'CJXL (Lossless)',
-			'Compress JPG/PNG to JXL (lossless).<br /><br />Accepts: <code>.jpg</code>, <code>.png</code>'
+			'Compress JPG/PNG to JXL (lossless).',
+			['.jpg', '.png']
 		],
 		[
 			backend.TaskID.AvifLossy,
 			'AVIF (Lossy)',
-			'Compress JPG/PNG to JXL (lossy).<br /><br />Accepts: <code>.jpg</code>, <code>.png</code>'
+			'Compress JPG/PNG to JXL (lossy).',
+			['.jpg', '.png']
 		],
-		[
-			backend.TaskID.Djxl,
-			'DJXL',
-			'Decompress JXL to JPG/PNG.<br /><br />Accepts: <code>.jxl</code>'
-		],
-		[
-			backend.TaskID.Par2,
-			'PAR2',
-			'Create parity files for 7z.<br /><br />Accepts: <code>.7z</code>'
-		],
+		[backend.TaskID.Djxl, 'DJXL', 'Decompress JXL to JPG/PNG.', ['.jxl']],
+		[backend.TaskID.Par2, 'PAR2', 'Create parity files for 7z.', ['.7z']],
 		[
 			backend.TaskID.DifferDiff,
 			'Differ diff',
-			'Generate diff images sequence.<br /><br />Accepts: <code>.png</code>'
+			'Generate diff images sequence.',
+			['.png']
 		],
 		[
 			backend.TaskID.DifferJoin,
 			'Differ join',
-			'Reconstruct image from diff images sequence.<br /><br />Accepts: <code>.png</code>'
+			'Reconstruct image from diff images sequence.',
+			['.png']
 		]
-	] satisfies Array<[backend.TaskID, string, string]>
-).map(([ID, Label, Description]) => ({
+	] satisfies Array<[backend.TaskID, string, string, string[]]>
+).map(([ID, Label, Description, Accepts]) => ({
 	ID,
 	Label,
 	Description,
+	Accepts,
 	Bounds: { X: 0, Y: 0, Width: 0, Height: 0 }
 }))
 
@@ -164,7 +163,9 @@ onUnmounted(() => {
 					<HoverCardContent
 						class="px-3 py-2 text-sm text-balance text-primary/80"
 					>
-						<span v-html="task.Description" />
+						{{ task.Description }}
+						<br /><br />
+						Accepts: <code>{{ task.Accepts.join(', ') }}</code>
 					</HoverCardContent>
 				</HoverCard>
 			</div>
